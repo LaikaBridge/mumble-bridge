@@ -2,6 +2,8 @@ import {Ice, Glacier2} from "npm:ice"
 import { App } from 'https://deno.land/x/rpc@0.2.1/app.ts'
 // @ts-types="./protocol/generated/MumbleServer.d.ts"
 import {MumbleServer} from "./protocol/generated/MumbleServer.js" 
+import {MumbleBridgeRPC} from "./rpc.ts"
+import { handleRpc } from "npm:typed-rpc/server";
 class MumbleHandler extends MumbleServer.ServerCallback{
   override userConnected(state: MumbleServer.User, current: Ice.Current): PromiseLike<void> | void {
     console.log(`user ${state.name} connected`)
@@ -95,36 +97,49 @@ async function main(){
     }
     // api server
     console.log("Starting API Server...");
-    const app = new App();
-    
-    app.method<[]>('getUsers', async (params)=>{
-        const users = await server.getUsers();
-        const channelUsers: Map<number, string[]> = new Map();
-        const channels = await server.getChannels();
-        for(const user of users.values()){
-            const channel = user.channel;
-            if(!channelUsers.has(channel)){
-                channelUsers.set(channel, []);
+    //const app = new App();
+    const service: MumbleBridgeRPC = {
+        getUsers: async ()=>{
+            const users = await server.getUsers();
+            const channelUsers: Map<number, string[]> = new Map();
+            const channels = await server.getChannels();
+            for(const user of users.values()){
+                if(user.name==="botamusique"){
+                    continue;
+                }
+                const channel = user.channel ?? "Unknown";
+                if(!channelUsers.has(channel)){
+                    channelUsers.set(channel, []);
+                }
+                channelUsers.get(channel)!.push(user.name);
             }
-            channelUsers.get(channel)!.push(user.name);
+            return Array.from(channelUsers.entries()).map(([channel, users])=>{
+                const channelName = channels.get(channel)!.name;
+                return {
+                    channel: channelName,
+                    users: users
+                }
+            })
         }
-        return Array.from(channelUsers.entries()).map(([channel, users])=>{
-            const channelName = channels.get(channel)?.name;
-            return {
-                channel: channelName,
-                users: users
-            }
-        })
-    })
+    }
+    const handler = async (req: Request) => {
+        const json = await req.json();
+        const data = await handleRpc(json, service)
+        return new Response(JSON.stringify(data), {
+            headers: {
+              "content-type": "application/json;charset=UTF-8",
+            },
+          });
+    }
     
 
-    app.listen({port: 6505});
+    const app = Deno.serve({port: 6505, hostname: "127.0.0.1"}, handler);
     console.log("API Server started");
     Deno.addSignalListener("SIGINT", async () => {
         clearInterval(taskRefresh);
         console.log("\nSIGINT detected, Shutting down Mumble ICE Client...");
         await communicator.destroy();
-        app.close();
+        app.shutdown();
         console.log("Mumble ICE Client down.");
         Deno.exit();
     });
