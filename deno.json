@@ -4,7 +4,6 @@
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
-    "@yieldray/json-rpc-ts": "jsr:@yieldray/json-rpc-ts@^0.2.1",
     "ice": "npm:ice@^3.7.100",
     "typed-rpc": "npm:typed-rpc@^6.1.1"
   }

@@ -14,7 +14,6 @@
     "jsr:@std/io@0.224": "0.224.9",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.0.8",
-    "jsr:@yieldray/json-rpc-ts@~0.2.1": "0.2.1",
     "npm:@types/node@*": "22.5.4",
     "npm:@yieldray/json-rpc-ts@*": "0.2.1",
     "npm:ice@*": "3.7.100",
@@ -71,9 +70,6 @@
     },
     "@std/path@1.0.8": {
       "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
-    },
-    "@yieldray/json-rpc-ts@0.2.1": {
-      "integrity": "127414945bc3e202086b56f46dec02b45f2258165b68c6d1f4bc97c15b132004"
     }
   },
   "npm": {
@@ -688,7 +684,6 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",
-      "jsr:@yieldray/json-rpc-ts@~0.2.1",
       "npm:ice@^3.7.100",
       "npm:typed-rpc@^6.1.1"
     ]
